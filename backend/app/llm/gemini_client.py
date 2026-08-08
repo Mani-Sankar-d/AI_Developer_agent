@@ -42,21 +42,47 @@ class GeminiClient(BaseLLMClient):
                 )
 
             elif message.role == "assistant":
-                contents.append(
-                    types.Content(
-                        role="model",
-                        parts=[types.Part(text=message.content)],
+                if message.tool_call:
+                    contents.append(
+                        types.Content(
+                            role="model",
+                            parts=[
+                                types.Part(
+                                    function_call=types.FunctionCall(
+                                        name=message.tool_call["name"],
+                                        args=message.tool_call["arguments"],
+                                    )
+                                )
+                            ],
+                        )
                     )
-                )
+                else:
+                    contents.append(
+                        types.Content(
+                            role="model",
+                            parts=[
+                                types.Part(text=message.content)
+                            ],
+                        )
+                    )
 
             elif message.role == "tool":
-                raise NotImplementedError("Tool messages not implemented yet.")
+                contents.append(
+                    types.Content(
+                        role="user",
+                        parts=[types.Part(
+                            function_response=types.FunctionResponse(
+                                name = message.name,
+                                response={"result":message.content}
+                            )
+                        )]
+                    )
+                )
 
         return contents
 
     async def generate(self,messages: list[LLMMessage],tools: list | None = None):
         contents = self._build_contents(messages)
-
         gemini_tools = self._build_tools(tools)
         allowed_names = [tool.name for tool in tools] if tools else None
         response = await self.client.aio.models.generate_content(

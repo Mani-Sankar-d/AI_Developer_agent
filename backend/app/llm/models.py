@@ -5,6 +5,7 @@ class LLMMessage(BaseModel):
     role: str
     content: str
     name: str | None = None
+    tool_call: dict | None = None
 
 class LLMResponse(BaseModel):
     content: str | None = None

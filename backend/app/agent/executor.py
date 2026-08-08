@@ -30,6 +30,13 @@ class AgentExecutor:
                 return state.final_response
 
             for tool_call in response.tool_calls:
+                state.messages.append(
+                    LLMMessage(
+                        role="assistant",
+                        content=None,
+                        tool_call=tool_call,
+                    )
+                )
                 result = await self.execute_tool(
                     tool_call["name"],
                     **tool_call["arguments"],
