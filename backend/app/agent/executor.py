@@ -14,7 +14,10 @@ class AgentExecutor:
         return await tool.run(**kwargs)
 
     async def run(self, state: AgentState):
+        it = 1
         while True:
+            print(it)
+            it+=1
             response = await self.llm.generate(
                 messages=state.messages,
                 tools=tool_registry.list(),
@@ -27,20 +30,23 @@ class AgentExecutor:
                         content=response.content,
                     )
                 )
+                print(state)
                 return state.final_response
 
             for tool_call in response.tool_calls:
                 state.messages.append(
                     LLMMessage(
                         role="assistant",
-                        content=None,
                         tool_call=tool_call,
+                        raw_content=response.raw_content,
                     )
                 )
+
                 result = await self.execute_tool(
                     tool_call["name"],
                     **tool_call["arguments"],
                 )
+
                 state.messages.append(
                     LLMMessage(
                         role="tool",
@@ -48,6 +54,7 @@ class AgentExecutor:
                         content=str(result),
                     )
                 )
+
                 state.tool_results.append({
                     "name": tool_call["name"],
                     "result": result,

@@ -19,7 +19,6 @@ class GeminiClient(BaseLLMClient):
         function_declarations = []
         for tool in tools:
             schema = tool.schema()
-            print(tool.schema())
             function_declarations.append(
                 types.FunctionDeclaration(
                     name=schema["name"],
@@ -30,9 +29,12 @@ class GeminiClient(BaseLLMClient):
         return [
             types.Tool(function_declarations=function_declarations)
         ]
-    def _build_contents(self, messages:list[LLMMessage]):
+
+    def _build_contents(self, messages: list[LLMMessage]):
         contents: list[types.Content] = []
+
         for message in messages:
+
             if message.role == "user":
                 contents.append(
                     types.Content(
@@ -42,27 +44,15 @@ class GeminiClient(BaseLLMClient):
                 )
 
             elif message.role == "assistant":
-                if message.tool_call:
-                    contents.append(
-                        types.Content(
-                            role="model",
-                            parts=[
-                                types.Part(
-                                    function_call=types.FunctionCall(
-                                        name=message.tool_call["name"],
-                                        args=message.tool_call["arguments"],
-                                    )
-                                )
-                            ],
-                        )
-                    )
+
+                if message.raw_content:
+                    contents.append(message.raw_content)
+
                 else:
                     contents.append(
                         types.Content(
                             role="model",
-                            parts=[
-                                types.Part(text=message.content)
-                            ],
+                            parts=[types.Part(text=message.content)],
                         )
                     )
 
@@ -70,21 +60,27 @@ class GeminiClient(BaseLLMClient):
                 contents.append(
                     types.Content(
                         role="user",
-                        parts=[types.Part(
-                            function_response=types.FunctionResponse(
-                                name = message.name,
-                                response={"result":message.content}
+                        parts=[
+                            types.Part(
+                                function_response=types.FunctionResponse(
+                                    name=message.name,
+                                    response={"result": message.content},
+                                )
                             )
-                        )]
+                        ],
                     )
                 )
 
         return contents
 
-    async def generate(self,messages: list[LLMMessage],tools: list | None = None):
+    async def generate(
+            self,
+            messages: list[LLMMessage],
+            tools: list[BaseTool] | None = None,
+    ):
         contents = self._build_contents(messages)
         gemini_tools = self._build_tools(tools)
-        allowed_names = [tool.name for tool in tools] if tools else None
+
         response = await self.client.aio.models.generate_content(
             model=self.model,
             contents=contents,
@@ -93,20 +89,23 @@ class GeminiClient(BaseLLMClient):
                 tools=gemini_tools,
                 tool_config=types.ToolConfig(
                     function_calling_config=types.FunctionCallingConfig(
-                        mode="ANY",
-                        allowed_function_names=allowed_names,
+                        mode="AUTO",
                     )
                 ),
             ),
         )
+
+        parts = response.candidates[0].content.parts
+
         return LLMResponse(
-            content=response.text,
+            content=response.text if response.text else None,
             tool_calls=[
                 {
                     "name": part.function_call.name,
                     "arguments": dict(part.function_call.args),
                 }
-                for part in response.candidates[0].content.parts
-                if part.function_call is not None
+                for part in parts
+                if part.function_call
             ],
+            raw_content=response.candidates[0].content,
         )
