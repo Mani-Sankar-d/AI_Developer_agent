@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod
-
 from AI_Developer_agent.backend.app.llm.models import LLMMessage,LLMResponse
+from langchain_core.messages import BaseMessage
 
-class BaseLLMClient(ABC):
-    @abstractmethod
-    async def generate(self, messages:list[LLMMessage]):
-        pass
+
+class BaseLLMClient:
+    async def generate(
+        self,
+        messages: list[BaseMessage],
+    ):
+        raise NotImplementedError

@@ -1,18 +1,32 @@
 from langgraph.graph import StateGraph, START, END
 from AI_Developer_agent.backend.app.agent.graph.state import AgentState
-from AI_Developer_agent.backend.app.agent.graph.nodes import create_llm_node
-from AI_Developer_agent.backend.app.llm.client import BaseLLMClient
-from AI_Developer_agent.backend.app.llm.gemini import GeminiClient
-from AI_Developer_agent.backend.app.llm.models import LLMMessage
+from AI_Developer_agent.backend.app.agent.graph.nodes import llm_node,tool_node,should_continue
 
-def create_graph(llm:BaseLLMClient):
+
+def create_graph():
     graph = StateGraph(AgentState)
-    graph.add_node("llm",create_llm_node(llm))
+    graph.add_node("llm",llm_node)
+    graph.add_node("tools",tool_node)
     graph.add_edge(START, "llm")
-    graph.add_edge("llm",END)
-    agent_graph = graph.compile()
-    return agent_graph
+    graph.add_conditional_edges(
+        "llm",
+        should_continue,
+    {"tools":"tools",END:END}
+    )
+    graph.add_edge("tools","llm")
+    return graph.compile()
 
-llm = GeminiClient(GEMINI_API_KEY,GEMINI_MODEL)
+from langchain_core.messages import HumanMessage
+agent_graph = create_graph()
 
-graph = create_graph(llm)
+async def test():
+    result = await agent_graph.ainvoke({
+        "messages": [
+            HumanMessage(content="What is 234 * 567?")
+        ]
+    })
+
+    for message in result["messages"]:
+        print(message)
+import asyncio
+asyncio.run(test())

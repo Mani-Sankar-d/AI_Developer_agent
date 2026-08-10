@@ -1,7 +1,7 @@
-from typing import TypedDict
-
-from AI_Developer_agent.backend.app.llm.models import LLMMessage
+from typing import Annotated
+from typing_extensions import TypedDict
+from langgraph.graph.message import add_messages
 
 
 class AgentState(TypedDict):
-    messages:list[LLMMessage]
+    messages: Annotated[list, add_messages]
