@@ -6,16 +6,17 @@ from AI_Developer_agent.backend.app.agent.graph.nodes import (
 )
 from AI_Developer_agent.mcp_client.client import client
 from AI_Developer_agent.backend.app.core.settings import settings
-
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import ToolNode
+from AI_Developer_agent.backend.app.rag.rag_tool import search_documents
 
 
 async def create_graph():
-    tools = await client.get_tools()
-    print("MCP TOOLS:")
-    for tool in tools:
-        print(tool.name)
+    mcp_tools = await client.get_tools()
+    tools = [*mcp_tools, search_documents]
+    # print("MCP TOOLS:")
+    # for tool in tools:
+    #     print(tool.name)
     llm = ChatGoogleGenerativeAI(
         model=settings.MODEL,
         api_key=settings.KEY,
@@ -46,7 +47,7 @@ async def test():
     result = await agent_graph.ainvoke({
         "messages": [
             HumanMessage(
-                content="Read AI_Developer_agent/backend/app/agent/graph/state.py and explain what AgentState does."
+                content="From the document uploaded answer the question: Explain the plan for quantfest iicpc."
             )
         ]
     })
