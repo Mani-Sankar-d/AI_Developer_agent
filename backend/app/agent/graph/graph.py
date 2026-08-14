@@ -47,7 +47,7 @@ async def test():
     result = await agent_graph.ainvoke({
         "messages": [
             HumanMessage(
-                content="From the document uploaded answer the question: Explain the plan for quantfest iicpc."
+                content="From the document uploaded answer the question: Explain the phases of project."
             )
         ]
     })
