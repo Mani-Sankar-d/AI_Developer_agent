@@ -6,21 +6,18 @@ from AI_Developer_agent.backend.app.agent.graph.nodes import (
 )
 from AI_Developer_agent.mcp_client.client import client
 from AI_Developer_agent.backend.app.core.settings import settings
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import ToolNode
+from AI_Developer_agent.mcp_client.client import client
 from AI_Developer_agent.backend.app.rag.rag_tool import search_documents
+from AI_Developer_agent.backend.app import llm
+from AI_Developer_agent.backend.app.plan.plan_tool import create_planner
 
 
 async def create_graph():
     mcp_tools = await client.get_tools()
     tools = [*mcp_tools, search_documents]
-    # print("MCP TOOLS:")
-    # for tool in tools:
-    #     print(tool.name)
-    llm = ChatGoogleGenerativeAI(
-        model=settings.MODEL,
-        api_key=settings.KEY,
-    )
+    planner = create_planner(llm,tools)
+    tools = [*tools, planner]
     llm_with_tools = llm.bind_tools(tools)
     tool_node = ToolNode(tools)
     llm_node = create_llm_node(llm_with_tools)
@@ -47,7 +44,7 @@ async def test():
     result = await agent_graph.ainvoke({
         "messages": [
             HumanMessage(
-                content="From the document uploaded answer the question: Explain the phases of project."
+                content="E:/Academics/dummy is ur project directory in there you create a login page UI make the project structure look good use the planner tool to break down the steps and create two or three files and one file within one folder jjust for fun write the html css and js write the js in scripts directory in project keep it minimal maybe 2-3 lines of code"
             )
         ]
     })

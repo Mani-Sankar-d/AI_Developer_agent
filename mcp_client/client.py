@@ -12,19 +12,3 @@ client = MultiServerMCPClient(
         }
     }
 )
-
-
-async def test():
-    tools = await client.get_tools()
-
-    for tool in tools:
-        print("Name:", tool.name)
-        print("Description:", tool.description)
-        print("Args:", tool.args)
-        print()
-
-
-import asyncio
-
-if __name__ == "__main__":
-    asyncio.run(test())
