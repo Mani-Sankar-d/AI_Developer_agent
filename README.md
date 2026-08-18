@@ -11,7 +11,7 @@ Local MCP filesystem server is run and it exposes the filesystem services.
 - Use tools to interact with the local system.
 - Built with LangGraph for agent workflow and state management.
 - Simple interactive CLI interface.
-
+- RAG capabilities to ingest pdf and question answer on it
 ## Usage
 
 ### 1. Clone the repository
@@ -65,6 +65,7 @@ if AI_Developer_agent is in D:/projects then put .env and execute from D:/projec
 The agent will start an interactive CLI:
 
 To exit just prompt "exit"
+To use rag prompt "upload" then input path when asked
 
 ```text
 YOU:

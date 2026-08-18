@@ -1,15 +1,21 @@
 from langchain_core.messages import HumanMessage
 from AI_Developer_agent.backend.app.agent.graph.graph import create_graph
 from AI_Developer_agent.backend.app.agent.graph.state import AgentState
+from AI_Developer_agent.backend.app.rag.ingest import ingest_pdf
 
 
 async def execute():
     agent_graph = await create_graph()
     state = AgentState(messages=[])
+    print("To exit prompt /exit, to upload pdf for rag prompt /upload")
     while True:
         query = input("USER: ")
-        if(query=="exit"):
+        if(query=="/exit"):
             break
+        if(query=="/upload"):
+            path = input("AGENT: give the file path")
+            ingest_pdf(path)
+            continue
         state["messages"].append(
             HumanMessage(content=query)
         )
