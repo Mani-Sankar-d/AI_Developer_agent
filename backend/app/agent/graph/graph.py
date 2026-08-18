@@ -35,24 +35,3 @@ async def create_graph():
     )
     graph.add_edge("tools", "llm")
     return graph.compile()
-
-from langchain_core.messages import HumanMessage
-async def test():
-
-    agent_graph = await create_graph()
-
-    result = await agent_graph.ainvoke({
-        "messages": [
-            HumanMessage(
-                content="E:/Academics/dummy is ur project directory in there you create a login page UI make the project structure look good use the planner tool to break down the steps and create two or three files and one file within one folder jjust for fun write the html css and js write the js in scripts directory in project keep it minimal maybe 2-3 lines of code"
-            )
-        ]
-    })
-
-    for message in result["messages"]:
-        print(message)
-
-import asyncio
-
-if __name__ == "__main__":
-    asyncio.run(test())
